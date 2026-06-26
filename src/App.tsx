@@ -434,7 +434,8 @@ const Contact = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5184/api/contact", {
+      const apiHost = window.location.hostname;
+      const response = await fetch(`http://${apiHost}:5000/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

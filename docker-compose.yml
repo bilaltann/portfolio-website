@@ -1,11 +1,22 @@
 version: '3.8'
 
 services:
+  # 1. REACT ÖN YÜZ (Kullanıcıların göreceği web sitesi)
+  portfolio-frontend:
+    build: . # Ana dizindeki Nginx/React Dockerfile'ını okur
+    container_name: portfolio-frontend-container
+    ports:
+      - "80:80" # Sunucunun 80 portunu React web sitesine veriyoruz
+    restart: unless-stopped
+    depends_on:
+      - portfolio-api # Önce API'nin çalışmasını bekler
+
+  # 2. C# MAIL API (Arka planda çalışan mail servisi)
   portfolio-api:
     build: ./PortfolioMailApi
     container_name: portfolio-api-container
     ports:
-      - "80:8080" # Sunucunun 80 portunu, uygulamanın 8080 portuna bağlıyoruz
+      - "5000:8080" # Sunucunun 5000 portunu API'ye veriyoruz (80 portu çakışmasın diye)
     environment:
-      - MailSettings__Password=${MAIL_PASSWORD} # Şifreyi .env dosyasından alacak
+      - MailSettings__Password=${MAIL_PASSWORD} # Şifreyi sunucudaki .env'den alır
     restart: unless-stopped
