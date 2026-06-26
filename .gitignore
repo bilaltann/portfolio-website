@@ -33,3 +33,7 @@ Thumbs.db
 # .NET Build outputs
 [Bb]in/
 [Oo]bj/
+
+# Sensitive data
+.env
+

@@ -484,7 +484,7 @@ const Contact = () => {
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Name</label>
               <input
                 type="text"
-                placeholder="What's your good name?"
+                placeholder="What's your name?"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 className="w-full bg-[#10132e] border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
@@ -495,7 +495,7 @@ const Contact = () => {
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Email</label>
               <input
                 type="email"
-                placeholder="What's your web address?"
+                placeholder="What's your mail address?"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="w-full bg-[#10132e] border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"

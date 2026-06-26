@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  portfolio-api:
+    build: ./PortfolioMailApi
+    container_name: portfolio-api-container
+    ports:
+      - "80:8080" # Sunucunun 80 portunu, uygulamanın 8080 portuna bağlıyoruz
+    environment:
+      - MailSettings__Password=${MAIL_PASSWORD} # Şifreyi .env dosyasından alacak
+    restart: unless-stopped
