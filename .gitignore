@@ -29,3 +29,7 @@ out/
 # System Files
 .DS_Store
 Thumbs.db
+
+# .NET Build outputs
+[Bb]in/
+[Oo]bj/

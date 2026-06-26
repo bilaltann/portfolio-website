@@ -409,6 +409,58 @@ const Projects = () => {
 };
 
 const Contact = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !email || !message) {
+      setStatusMsg("Lütfen tüm alanları doldurun.");
+      setIsSuccess(false);
+      return;
+    }
+
+    setLoading(true);
+    setStatusMsg('');
+
+    const formData = {
+      name: name,
+      email: email,
+      message: message
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setIsSuccess(true);
+        setStatusMsg("Mesajınız iletildi, teşekkürler!");
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        setIsSuccess(false);
+        setStatusMsg("Bir hata oluştu, lütfen tekrar deneyin.");
+      }
+    } catch (error) {
+      console.error("Sunucuya bağlanılamadı:", error);
+      setIsSuccess(false);
+      setStatusMsg("Sunucuya bağlanılamadı. Lütfen API'nin çalıştığından emin olun.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-32 px-6 bg-black relative">
       {/* Background Stars Simulation */}
@@ -427,13 +479,16 @@ const Contact = () => {
           <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4">Get in touch</h4>
           <h2 className="text-5xl font-extrabold text-white tracking-tight mb-12">Contact.</h2>
 
-          <form className="space-y-6" onSubmit={e => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Name</label>
               <input
                 type="text"
                 placeholder="What's your good name?"
+                value={name}
+                onChange={e => setName(e.target.value)}
                 className="w-full bg-[#10132e] border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -441,7 +496,10 @@ const Contact = () => {
               <input
                 type="email"
                 placeholder="What's your web address?"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
                 className="w-full bg-[#10132e] border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -449,11 +507,25 @@ const Contact = () => {
               <textarea
                 rows={4}
                 placeholder="What do you want to say?"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
                 className="w-full bg-[#10132e] border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors resize-none"
+                required
               />
             </div>
-            <button className="bg-[#1c1f3d] hover:bg-[#252a50] text-white font-bold py-4 px-10 rounded-xl transition-all shadow-lg shadow-black/50 active:scale-95">
-              Send
+
+            {statusMsg && (
+              <div className={`text-sm font-semibold p-4 rounded-xl ${isSuccess ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                {statusMsg}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-[#1c1f3d] hover:bg-[#252a50] text-white font-bold py-4 px-10 rounded-xl transition-all shadow-lg shadow-black/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Gönderiliyor..." : "Send"}
             </button>
           </form>
 
