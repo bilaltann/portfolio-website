@@ -10,7 +10,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://13.51.58.114") // React projenin adresini buraya yaz
+        policy.WithOrigins("http://34.229.166.36") // React projenin adresini buraya yaz
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
