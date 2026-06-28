@@ -434,8 +434,8 @@ const Contact = () => {
     };
 
     try {
-      const apiHost = "bilaltan.com";
-      const response = await fetch(`http://${apiHost}:5000/api/contact`, {
+
+      const response = await fetch(`/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
