@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-web-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-web
+  template:
+    metadata:
+      labels:
+        app: portfolio-web
+    spec:
+      containers:
+      - name: portfolio-web-container
+        image: bilaltan7/portfolio-website:latest
+        ports:
+        - containerPort: 80 # Dockerfile'daki EXPOSE 80 komutuyla eşleşir
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-web-service
+spec:
+  type: NodePort # Dış dünyaya (AWS EC2 dışına) açılan kapı
+  selector:
+    app: portfolio-web
+  ports:
+    - protocol: TCP
+      port: 80          # Service'in iç K8s portu
+      targetPort: 80    # Konteynerdeki Nginx'in dinlediği port
+      nodePort: 30080   # AWS sunucuna dışarıdan erişilecek port (30000-32767 arası)

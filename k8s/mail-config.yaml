@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mail-config
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  MailSettings__Host: "smtp.gmail.com"
+  MailSettings__Port: "587"

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mail-api-deployment
+spec:
+  replicas: 1 # Kaç tane kopya (Pod) çalışmasını istediğimiz
+  selector:
+    matchLabels:
+      app: mail-api
+  template:
+    metadata:
+      labels:
+        app: mail-api
+    spec:
+      containers:
+      - name: mail-api-container
+        image: bilaltan7/portfolio-mail-api:latest
+        ports:
+        - containerPort: 8080 # .NET 8'in varsayılan iç portu
+        
+        # Hazırladığımız ConfigMap ve Secret'ı içeri aktarma
+        envFrom:
+        - configMapRef:
+            name: mail-config
+        - secretRef:
+            name: mail-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mail-api-service
+spec:
+  type: ClusterIP # Sadece K8s ağı içinden erişilebilir (Güvenlik için)
+  selector:
+    app: mail-api
+  ports:
+    - protocol: TCP
+      port: 5000       # Frontend'in (veya Nginx'in) istek atacağı port
+      targetPort: 8080 # Konteynerin içindeki .NET 8'in dinlediği port
