@@ -21,14 +21,15 @@ var app = builder.Build();
 // CORS'u aktif et
 app.UseCors("AllowReactApp");
 
+
 // 2. Mail gönderme Endpoint'i (POST /api/contact)
 app.MapPost("/api/contact", async ([FromBody] ContactForm form, IConfiguration config) =>
 {
+    // Değişkeni try bloğunun DIŞINA alıyoruz ki catch bloğu da okuyabilsin
+    var mailSettings = config.GetSection("MailSettings").Get<MailSettings>();
+
     try
     {
-        // Ayarları appsettings.json'dan çek
-        var mailSettings = config.GetSection("MailSettings").Get<MailSettings>();
-
         // SMTP İstemcisini ayarla
         var smtpClient = new SmtpClient(mailSettings!.Host, mailSettings.Port)
         {
@@ -58,8 +59,17 @@ app.MapPost("/api/contact", async ([FromBody] ContactForm form, IConfiguration c
     }
     catch (Exception ex)
     {
-        // Hata durumunda bilgi dön
-        return Results.Problem($"Mail gönderilirken bir hata oluştu: {ex.Message}");
+        // 1. Render Loglarına detaylı olarak yazdır
+        Console.WriteLine("=== MAIL GÖNDERİM HATASI ===");
+        Console.WriteLine($"Host: {mailSettings?.Host}, Port: {mailSettings?.Port}");
+        Console.WriteLine($"Kullanıcı: {mailSettings?.Username}");
+        Console.WriteLine($"Şifre Render'dan başarıyla okundu mu?: {!string.IsNullOrEmpty(mailSettings?.Password)}");
+        Console.WriteLine($"Tam Hata Çıktısı: {ex.ToString()}");
+        Console.WriteLine("============================");
+
+        // 2. Tarayıcının Network sekmesine detayları fırlat
+        var gercekHata = ex.InnerException != null ? ex.InnerException.Message : "Alt detay yok";
+        return Results.Problem($"Mail Hata: {ex.Message} | Alt Sebep: {gercekHata}");
     }
 });
 
