@@ -1,75 +1,59 @@
-using System.Net;
-using System.Net.Mail;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using PortfolioMailApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. React uygulamasının API'ye istek atabilmesi için CORS ayarı (Vite genelde 5173 portunu kullanır)
+// CORS Ayarları
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-            policy.WithOrigins("https://bilaltan.com", "https://www.bilaltan.com")
+        policy.WithOrigins("https://bilaltan.com", "https://www.bilaltan.com")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
+// HTTP istekleri atabilmek için HttpClient servisini ekliyoruz
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
-// CORS'u aktif et
 app.UseCors("AllowReactApp");
 
-
-// 2. Mail gönderme Endpoint'i (POST /api/contact)
-app.MapPost("/api/contact", async ([FromBody] ContactForm form, IConfiguration config) =>
+app.MapPost("/api/contact", async ([FromBody] ContactForm form, IConfiguration config, IHttpClientFactory httpClientFactory) =>
 {
-    // Değişkeni try bloğunun DIŞINA alıyoruz ki catch bloğu da okuyabilsin
-    var mailSettings = config.GetSection("MailSettings").Get<MailSettings>();
-
     try
     {
-        // SMTP İstemcisini ayarla
-        var smtpClient = new SmtpClient(mailSettings!.Host, mailSettings.Port)
+        // Anahtarı Render'dan çekeceğiz
+        var apiKey = config["ResendAPIKey"];
+        var client = httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+        var emailData = new
         {
-            Credentials = new NetworkCredential(mailSettings.Username, mailSettings.Password),
-            EnableSsl = true
+            from = "Portfolio Contact <onboarding@resend.dev>", // Ücretsiz sürüm zorunluluğu
+            to = new[] { "bilaltanbt07@gmail.com" }, // Kendi Gmail adresin (Resend'e kayıt olduğun adres olmalı)
+            reply_to = form.Email, // Ziyaretçinin adresi (Yanıtla dediğinde ona gider)
+            subject = $"Portfolyo İletişim Formu: {form.Name}",
+            text = $"Ad Soyad: {form.Name}\nE-Posta: {form.Email}\n\nMesaj:\n{form.Message}"
         };
 
-        // Mail içeriğini oluştur
-        var mailMessage = new MailMessage
+        var response = await client.PostAsJsonAsync("https://api.resend.com/emails", emailData);
+
+        if (response.IsSuccessStatusCode)
         {
-            From = new MailAddress(mailSettings.From),
-            Subject = $"Portfolyo İletişim Formu: {form.Name}",
-            Body = $"Ad Soyad: {form.Name}\nE-Posta: {form.Email}\n\nMesaj:\n{form.Message}",
-            IsBodyHtml = false,
-        };
+            return Results.Ok(new { message = "Mesajınız başarıyla gönderildi." });
+        }
 
-        // Kime gidecek? (Kendi okuyacağın adres)
-        mailMessage.To.Add("bilaltan070@gmail.com");
-
-        // İPUCU: Maile "Yanıtla" dediğinde direkt formu dolduran kişinin adresine yanıt verebilmen için:
-        mailMessage.ReplyToList.Add(form.Email);
-
-        // Maili gönder
-        await smtpClient.SendMailAsync(mailMessage);
-
-        return Results.Ok(new { message = "Mesajınız başarıyla gönderildi." });
+        var errorDetails = await response.Content.ReadAsStringAsync();
+        return Results.Problem($"Resend API Hatası: {errorDetails}");
     }
     catch (Exception ex)
     {
-        // 1. Render Loglarına detaylı olarak yazdır
-        Console.WriteLine("=== MAIL GÖNDERİM HATASI ===");
-        Console.WriteLine($"Host: {mailSettings?.Host}, Port: {mailSettings?.Port}");
-        Console.WriteLine($"Kullanıcı: {mailSettings?.Username}");
-        Console.WriteLine($"Şifre Render'dan başarıyla okundu mu?: {!string.IsNullOrEmpty(mailSettings?.Password)}");
-        Console.WriteLine($"Tam Hata Çıktısı: {ex.ToString()}");
-        Console.WriteLine("============================");
-
-        // 2. Tarayıcının Network sekmesine detayları fırlat
-        var gercekHata = ex.InnerException != null ? ex.InnerException.Message : "Alt detay yok";
-        return Results.Problem($"Mail Hata: {ex.Message} | Alt Sebep: {gercekHata}");
+        return Results.Problem($"Sunucu Hatası: {ex.Message}");
     }
 });
 
