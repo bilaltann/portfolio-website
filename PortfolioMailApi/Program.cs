@@ -35,8 +35,8 @@ app.MapPost("/api/contact", async ([FromBody] ContactForm form, IConfiguration c
         var emailData = new
         {
             from = "Portfolio Contact <onboarding@resend.dev>", // Ücretsiz sürüm zorunluluğu
-            to = new[] { "bilaltanbt07@gmail.com" }, // Kendi Gmail adresin (Resend'e kayıt olduğun adres olmalı)
-            reply_to = form.Email, // Ziyaretçinin adresi (Yanıtla dediğinde ona gider)
+            to = new[] { "bilaltan07@icloud.com" }, 
+            reply_to = form.Email, 
             subject = $"Portfolyo İletişim Formu: {form.Name}",
             text = $"Ad Soyad: {form.Name}\nE-Posta: {form.Email}\n\nMesaj:\n{form.Message}"
         };
